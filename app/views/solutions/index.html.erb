@@ -1,0 +1,12 @@
+<table class="table">
+  <tr>
+    <th>#</th>
+    <th>状態</th>
+  </tr>
+  <% @solutions.each do |s| %>
+    <tr>
+      <td><%= s.id %></td>
+      <td><%= s.status %></td>
+    </tr>
+  <% end %>
+</table>
