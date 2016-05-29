@@ -1,6 +1,6 @@
 class SolutionsController < ApplicationController
   def index
-    # TODO
+    @solutions = Solution.all
   end
 
   def create
