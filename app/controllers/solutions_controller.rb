@@ -7,7 +7,7 @@ class SolutionsController < ApplicationController
     @solution = Solution.new(solution_params)
 
     if @solution.save
-      redirect_to action: :index
+      redirect_to @solution
     else
       render :new
     end
