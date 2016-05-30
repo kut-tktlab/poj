@@ -4,11 +4,17 @@ class SolutionsController < ApplicationController
   end
 
   def create
-    # TODO
+    @solution = Solution.new(solution_params)
+
+    if @solution.save
+      redirect_to action: :index
+    else
+      render :new
+    end
   end
 
   def new
-    # TODO
+    @solution = Solution.new
   end
 
   def edit
@@ -25,5 +31,11 @@ class SolutionsController < ApplicationController
 
   def destroy
     # TODO
+  end
+
+  private
+
+  def solution_params
+    params.require(:solution).permit(:source)
   end
 end
