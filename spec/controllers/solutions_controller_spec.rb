@@ -68,7 +68,22 @@ RSpec.describe SolutionsController, type: :controller do
     end
   end
 
-  describe '#edit'
+  describe '#edit' do
+    let!(:solution) {
+      FactoryGirl.create(:solution)
+    }
+
+    it 'renders :edit template' do
+      get :edit, id: solution
+      expect(response).to render_template(:edit)
+    end
+
+    it 'assigns the requested solution to @solution' do
+      get :edit, id: solution
+      expect(assigns(:solution)).to eq(solution)
+    end
+  end
+
   describe '#show'
   describe '#update'
   describe '#destroy'

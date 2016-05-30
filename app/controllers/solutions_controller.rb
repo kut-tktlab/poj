@@ -18,7 +18,7 @@ class SolutionsController < ApplicationController
   end
 
   def edit
-    # TODO
+    @solution = Solution.find(params[:id])
   end
 
   def show
