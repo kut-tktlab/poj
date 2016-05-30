@@ -1,5 +1,6 @@
 # POJ
 
+[![Build Status](https://travis-ci.org/nyamadori/poj.svg?branch=master)](https://travis-ci.org/nyamadori/poj)
 [![Code Climate](https://codeclimate.com/github/nyamadori/poj/badges/gpa.svg)](https://codeclimate.com/github/nyamadori/poj)
 [![Test Coverage](https://codeclimate.com/github/nyamadori/poj/badges/coverage.svg)](https://codeclimate.com/github/nyamadori/poj/coverage)
 
