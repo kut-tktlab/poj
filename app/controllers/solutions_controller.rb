@@ -22,11 +22,17 @@ class SolutionsController < ApplicationController
   end
 
   def show
-    # TODO
+    @solution = Solution.find(params[:id])
   end
 
   def update
-    # TODO
+    @solution = Solution.find(params[:id])
+
+    if @solution.update(solution_params)
+      redirect_to @solution
+    else
+      render :edit
+    end
   end
 
   def destroy
