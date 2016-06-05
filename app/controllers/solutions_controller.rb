@@ -36,7 +36,9 @@ class SolutionsController < ApplicationController
   end
 
   def destroy
-    # TODO
+    @solution = Solution.find(params[:id])
+    @solution.destroy
+    redirect_to :solutions
   end
 
   private

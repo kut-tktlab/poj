@@ -137,5 +137,18 @@ RSpec.describe SolutionsController, type: :controller do
     end
   end
 
-  describe '#destroy'
+  describe '#destroy' do
+    let!(:solution) { FactoryGirl.create(:solution) }
+
+    it 'deletes the solution' do
+      expect {
+        delete :destroy, id: solution
+      }.to change(Solution, :count).by(-1)
+    end
+
+    it 'redirects to solutions#index' do
+      delete :destroy, id: solution
+      expect(response).to redirect_to solutions_url
+    end
+  end
 end
