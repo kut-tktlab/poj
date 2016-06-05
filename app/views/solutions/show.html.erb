@@ -1,0 +1,6 @@
+<h1>Solution #<%= @solution.id %></h1>
+<pre><code><%= @solution.source %></code></pre>
+<p>
+  <%= link_to 'back', solutions_path %>
+  <%= link_to 'edit', edit_solution_path(@solution) %>
+</p>
