@@ -1,4 +1,2 @@
-<%= simple_form_for @solution do |f| %>
-  <%= f.input :source, as: :text %>
-  <%= f.button :submit, class: 'btn-primary' %>
-<% end %>
+<%= render partial: 'form', locals: { solution: @solution } %>
+<%= link_to 'back', solutions_path %>

@@ -5,8 +5,10 @@
   </tr>
   <% @solutions.each do |s| %>
     <tr>
-      <td><%= s.id %></td>
+      <td><%= link_to s.id, solution_path(s) %></td>
       <td><%= s.status %></td>
     </tr>
   <% end %>
 </table>
+
+<%= link_to 'New solution', new_solution_path %>
