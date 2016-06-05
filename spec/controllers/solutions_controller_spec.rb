@@ -84,7 +84,58 @@ RSpec.describe SolutionsController, type: :controller do
     end
   end
 
-  describe '#show'
-  describe '#update'
+  describe '#show' do
+    let!(:solution) {
+      FactoryGirl.create(:solution)
+    }
+
+    it 'renders :show template' do
+      get :show, id: solution
+      expect(response).to render_template(:show)
+    end
+
+    it 'assigns the requested solution to @solution' do
+      get :show, id: solution
+      expect(assigns(:solution)).to eq(solution)
+    end
+  end
+
+  describe '#update' do
+    let!(:solution) do
+      FactoryGirl.create(:solution)
+    end
+
+    context 'with valid attributes' do
+      it 'locates the requested solution to @solution' do
+        patch :update, id: solution, solution: FactoryGirl.attributes_for(:solution)
+        expect(assigns(:solution)).to eq(solution)
+      end
+
+      it "changes solution's attributes" do
+        patch :update, id: solution, solution: FactoryGirl.attributes_for(:solution, source: '// changed')
+        solution.reload
+        expect(solution.source).to eq('// changed')
+      end
+
+      it 'redirects to the updated solution' do
+        patch :update, id: solution, solution: FactoryGirl.attributes_for(:solution)
+        expect(response).to redirect_to(solution)
+      end
+    end
+
+    context 'with invalid attributes' do
+      it "changes solution's attributes" do
+        patch :update, id: solution, solution: FactoryGirl.attributes_for(:invalid_solution)
+        solution.reload
+        expect(solution.source).not_to eq('')
+      end
+
+      it 'redirects to the updated solution' do
+        patch :update, id: solution, solution: FactoryGirl.attributes_for(:invalid_solution)
+        expect(response).to render_template(:edit)
+      end
+    end
+  end
+
   describe '#destroy'
 end
