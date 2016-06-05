@@ -69,9 +69,7 @@ RSpec.describe SolutionsController, type: :controller do
   end
 
   describe '#edit' do
-    let!(:solution) {
-      FactoryGirl.create(:solution)
-    }
+    let!(:solution) { FactoryGirl.create(:solution) }
 
     it 'renders :edit template' do
       get :edit, id: solution
@@ -85,9 +83,7 @@ RSpec.describe SolutionsController, type: :controller do
   end
 
   describe '#show' do
-    let!(:solution) {
-      FactoryGirl.create(:solution)
-    }
+    let!(:solution) { FactoryGirl.create(:solution) }
 
     it 'renders :show template' do
       get :show, id: solution
@@ -101,9 +97,7 @@ RSpec.describe SolutionsController, type: :controller do
   end
 
   describe '#update' do
-    let!(:solution) do
-      FactoryGirl.create(:solution)
-    end
+    let!(:solution) { FactoryGirl.create(:solution) }
 
     context 'with valid attributes' do
       it 'locates the requested solution to @solution' do
