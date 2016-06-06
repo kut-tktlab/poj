@@ -2,6 +2,8 @@
 engines:
   brakeman:
     enabled: true
+    exclude_fingerprints:
+    - 6cee36801d92e8e02a05469021e47a5b544d6b62bebe75cec19224aca65438c3
   bundler-audit:
     enabled: true
   csslint:
