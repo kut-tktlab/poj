@@ -14,6 +14,7 @@ gem 'devise', '~> 4.1.1'
 gem 'simple_form', '~> 3.2.1'
 gem 'enum_help', '~> 0.0.15'
 gem 'aasm', '~> 4.10.1'
+gem 'sidekiq', '~> 4.1.2'
 
 group :development, :test do
   gem 'pry-byebug'
