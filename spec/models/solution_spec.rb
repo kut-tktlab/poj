@@ -1,4 +1,5 @@
 require 'rails_helper'
+SKETCHES_PATH = Rails.root.join('spec', 'sketches')
 
 RSpec.describe Solution, type: :model do
   it 'is valid with a source and status' do
@@ -11,7 +12,7 @@ RSpec.describe Solution, type: :model do
     expect(solution).not_to be_valid
   end
 
-  describe 'aasm column #status' do
+  describe '#status (aasm column)' do
     context 'with initial state' do
       subject(:solution) { Solution.new }
 
@@ -46,6 +47,34 @@ RSpec.describe Solution, type: :model do
 
       it { is_expected.to have_state(:passed) }
       it { is_expected.to transition_from(:passed).to(:initial).on_event(:reset) }
+    end
+  end
+
+  describe '#request_judgement! (aasm event)' do
+    context 'with source that includes no build errors' do
+      let(:program) { 'line(0, 0, 100, 100);' }
+      let!(:solution) { FactoryGirl.create(:solution) }
+
+      before do
+        solution.request_judgement!
+      end
+
+      it 'transitions state to :passed' do
+        expect(solution.reload.status).to eq('passed')
+      end
+    end
+
+    context 'with source that includes build errors' do
+      let(:program) { 'line(0, 0, 100);' }
+      let!(:solution) { FactoryGirl.create(:build_failed_solution) }
+
+      before do
+        solution.request_judgement!
+      end
+
+      it 'transitions state to :build_failed' do
+        expect(solution.reload.status).to eq('build_failed')
+      end
     end
   end
 end
