@@ -23,18 +23,32 @@ RSpec.describe SolutionsController, type: :controller do
   describe '#create' do
     context 'with valid attributes' do
       let(:solution_params) do
-        FactoryGirl.attributes_for(:solution, source: '// problem 1')
+        FactoryGirl.attributes_for(:solution)
       end
 
       it 'saves the new solution in the database' do
         expect {
-          post :create, solution: solution_params
+          post :create, solution: FactoryGirl.attributes_for(:solution)
         }.to change(Solution, :count).by(1)
       end
 
       it 'redirects to solutions#show' do
-        post :create, solution: solution_params
+        post :create, solution: FactoryGirl.attributes_for(:solution)
         expect(response).to redirect_to solution_path(assigns(:solution))
+      end
+
+      context 'with source that includes no build errors' do
+        it 'transitions state of the new solution to :passed' do
+          post :create, solution: FactoryGirl.attributes_for(:solution)
+          expect(assigns(:solution).reload.status).to eq('passed')
+        end
+      end
+
+      context 'with source that includes build errors' do
+        it 'transitions state of the new solution to :build_failed' do
+          post :create, solution: FactoryGirl.attributes_for(:build_failed_solution)
+          expect(assigns(:solution).reload.status).to eq('build_failed')
+        end
       end
     end
 
@@ -114,6 +128,20 @@ RSpec.describe SolutionsController, type: :controller do
       it 'redirects to the updated solution' do
         patch :update, id: solution, solution: FactoryGirl.attributes_for(:solution)
         expect(response).to redirect_to(solution)
+      end
+
+      context 'with source that includes no build errors' do
+        it 'transitions state of the new solution to :passed' do
+          patch :update, id: solution, solution: FactoryGirl.attributes_for(:solution)
+          expect(assigns(:solution).reload.status).to eq('passed')
+        end
+      end
+
+      context 'with source that includes build errors' do
+        it 'transitions state of the new solution to :build_failed' do
+          patch :update, id: solution, solution: FactoryGirl.attributes_for(:build_failed_solution)
+          expect(assigns(:solution).reload.status).to eq('build_failed')
+        end
       end
     end
 
