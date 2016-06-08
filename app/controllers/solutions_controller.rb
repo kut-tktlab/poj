@@ -7,6 +7,7 @@ class SolutionsController < ApplicationController
     @solution = Solution.new(solution_params)
 
     if @solution.save
+      @solution.request_judgement!
       redirect_to @solution
     else
       render :new
@@ -29,6 +30,7 @@ class SolutionsController < ApplicationController
     @solution = Solution.find(params[:id])
 
     if @solution.update(solution_params)
+      @solution.request_judgement!
       redirect_to @solution
     else
       render :edit
