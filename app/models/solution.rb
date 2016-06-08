@@ -21,6 +21,8 @@ class Solution < ActiveRecord::Base
 
     event :request_judgement do
       transitions from: :initial, to: :pending
+      transitions from: :passed, to: :pending
+      transitions from: :build_failed, to: :pending
       success { enqueue_judgement_job }
     end
 
@@ -35,11 +37,6 @@ class Solution < ActiveRecord::Base
 
     event :pass do
       transitions from: :judging, to: :passed
-    end
-
-    event :reset do
-      transitions from: :build_failed, to: :initial
-      transitions from: :passed, to: :initial
     end
   end
 

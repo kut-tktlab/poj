@@ -39,14 +39,14 @@ RSpec.describe Solution, type: :model do
       subject(:solution) { Solution.new(status: :build_failed) }
 
       it { is_expected.to have_state(:build_failed) }
-      it { is_expected.to transition_from(:build_failed).to(:initial).on_event(:reset) }
+      it { is_expected.to transition_from(:build_failed).to(:pending).on_event(:request_judgement) }
     end
 
     context 'with passed state' do
       subject(:solution) { Solution.new(status: :passed) }
 
       it { is_expected.to have_state(:passed) }
-      it { is_expected.to transition_from(:passed).to(:initial).on_event(:reset) }
+      it { is_expected.to transition_from(:passed).to(:pending).on_event(:request_judgement) }
     end
   end
 
@@ -62,6 +62,11 @@ RSpec.describe Solution, type: :model do
       it 'transitions state to :passed' do
         expect(solution.reload.status).to eq('passed')
       end
+
+      it 'can retry request_judgement!' do
+        solution.reload.request_judgement!
+        expect(solution.reload.status).to eq('passed')
+      end
     end
 
     context 'with source that includes build errors' do
@@ -74,6 +79,23 @@ RSpec.describe Solution, type: :model do
 
       it 'transitions state to :build_failed' do
         expect(solution.reload.status).to eq('build_failed')
+      end
+
+      it 'can retry request_judgement!' do
+        solution.reload.request_judgement!
+        expect(solution.reload.status).to eq('build_failed')
+      end
+
+      it 'can fix build faild' do
+        fixed_source = 'line(0, 0, 100, 100);'
+
+        solution.reload
+        solution.source = fixed_source
+        solution.request_judgement!
+
+        solution.reload
+        expect(solution.status).to eq('passed')
+        expect(solution.source).to eq(fixed_source)
       end
     end
   end
