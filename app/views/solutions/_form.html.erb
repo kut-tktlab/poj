@@ -1,4 +1,4 @@
 <%= simple_form_for solution do |f| %>
-  <%= f.input :source, as: :text %>
+  <%= f.input :source, as: :text, input_html: { rows: 10 } %>
   <%= f.button :submit, class: 'btn-primary' %>
 <% end %>
