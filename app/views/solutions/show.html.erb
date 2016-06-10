@@ -1,5 +1,8 @@
 <header class="solution-show-header">
-  <h1>解答 #<%= @solution.id %></h1>
+  <h1>
+    解答 #<%= @solution.id %>
+  </h1>
+  <p><%= status_label(@solution) %></p>
 
   <div class="btn-group">
     <%= link_to edit_solution_path(@solution), class: 'btn btn-default' do %>
