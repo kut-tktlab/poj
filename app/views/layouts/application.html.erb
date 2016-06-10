@@ -7,8 +7,9 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
-
-<%= yield %>
-
+  <ol class="breadcrumb">
+    <%= render_breadcrumbs :tag => :li, :separator => "" %>
+  </ol>
+  <%= yield %>
 </body>
 </html>

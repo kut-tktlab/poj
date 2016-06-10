@@ -1,4 +1,11 @@
 class SolutionsController < ApplicationController
+  before_action :solution, only: [:edit, :show]
+
+  add_breadcrumb '解答一覧', :solutions_path
+  add_breadcrumb '投稿', :new_solution_path, only: [:new]
+  add_breadcrumb '詳細', :solution_path, only: [:show, :edit]
+  add_breadcrumb '編集', :edit_solution_path, only: [:edit]
+
   def index
     @solutions = Solution.all
   end
@@ -19,27 +26,22 @@ class SolutionsController < ApplicationController
   end
 
   def edit
-    @solution = Solution.find(params[:id])
   end
 
   def show
-    @solution = Solution.find(params[:id])
   end
 
   def update
-    @solution = Solution.find(params[:id])
-
-    if @solution.update(solution_params)
-      @solution.request_judgement!
-      redirect_to @solution
+    if solution.update(solution_params)
+      solution.request_judgement!
+      redirect_to solution
     else
       render :edit
     end
   end
 
   def destroy
-    @solution = Solution.find(params[:id])
-    @solution.destroy
+    solution.destroy
     redirect_to :solutions
   end
 
@@ -47,5 +49,9 @@ class SolutionsController < ApplicationController
 
   def solution_params
     params.require(:solution).permit(:source)
+  end
+
+  def solution
+    @solution ||= Solution.find(params[:id])
   end
 end
