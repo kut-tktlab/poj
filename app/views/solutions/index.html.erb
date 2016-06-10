@@ -1,3 +1,5 @@
+<h1>解答一覧</h1>
+
 <table class="table">
   <tr>
     <th>#</th>
@@ -6,9 +8,9 @@
   <% @solutions.each do |s| %>
     <tr>
       <td><%= link_to s.id, solution_path(s) %></td>
-      <td><%= s.status %></td>
+      <td><%= status_label(s) %></td>
     </tr>
   <% end %>
 </table>
 
-<%= link_to 'New solution', new_solution_path %>
+<%= link_to '解答を投稿', new_solution_path, class: 'btn btn-primary' %>
