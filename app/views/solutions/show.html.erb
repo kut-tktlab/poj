@@ -2,7 +2,6 @@
 
 <pre><code><%= @solution.source %></code></pre>
 <p>
-  <%= link_to 'back', solutions_path %>
   <%= link_to 'edit', edit_solution_path(@solution) %>
   <%= link_to 'delete', solution_path(@solution), method: :delete, data: { confirm: '本当に削除しますか?' } %>
 </p>
