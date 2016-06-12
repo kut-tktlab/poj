@@ -25,8 +25,8 @@ class Solution < ActiveRecord::Base
       transitions from: :initial, to: :pending
       transitions from: :passed, to: :pending
       transitions from: :build_failed, to: :pending
-      success do
-        SolutionJudgementJob.perform_later(self)
+      after do
+        SolutionJudgementJob.perform_later(self) if persisted?
       end
     end
 
@@ -50,6 +50,6 @@ class Solution < ActiveRecord::Base
   private
 
   def notify_clients
-    SolutionNotificationJob.perform_later(self)
+    SolutionNotificationJob.perform_later(self) if persisted?
   end
 end
