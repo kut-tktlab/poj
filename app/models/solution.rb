@@ -19,31 +19,27 @@ class Solution < ActiveRecord::Base
     state :build_failed
     state :passed
 
+    after_all_events { notify_clients }
+
     event :request_judgement do
       transitions from: :initial, to: :pending
       transitions from: :passed, to: :pending
       transitions from: :build_failed, to: :pending
       success do
-        notify_clients
         SolutionJudgementJob.perform_later(self)
       end
     end
 
     event :judge do
       transitions from: :pending, to: :judging
-      success do
-        notify_clients
-      end
     end
 
     event :fail_build do
       transitions from: :judging, to: :build_failed
-      success { notify_clients }
     end
 
     event :pass do
       transitions from: :judging, to: :passed
-      success { notify_clients }
     end
   end
 
@@ -54,7 +50,6 @@ class Solution < ActiveRecord::Base
   private
 
   def notify_clients
-    # WebsocketRails["solution_#{id}"].trigger event, self
     SolutionNotificationJob.perform_later(self)
   end
 end
