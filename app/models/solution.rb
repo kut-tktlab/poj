@@ -25,8 +25,8 @@ class Solution < ActiveRecord::Base
       transitions from: :initial, to: :pending
       transitions from: :passed, to: :pending
       transitions from: :build_failed, to: :pending
-      after do
-        SolutionJudgementJob.perform_later(self) if persisted?
+      success do
+        SolutionJudgementJob.perform_later(self)
       end
     end
 
