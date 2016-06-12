@@ -1,4 +1,5 @@
 statusClasses =
+  judging: 'label-info'
   pending: 'label-default'
   passed: 'label-success'
   build_failed: 'label-danger'
