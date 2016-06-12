@@ -8,7 +8,11 @@
   <% @solutions.each do |s| %>
     <tr>
       <td><%= link_to s.id, solution_path(s) %></td>
-      <td><%= status_label(s) %></td>
+      <td>
+        <solution-status-label
+          :solution-id="<%= s.id %>"
+          :status="'<%= s.status %>'"></solution-status-label>
+      </td>
     </tr>
   <% end %>
 </table>
