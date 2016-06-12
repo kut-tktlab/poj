@@ -3,16 +3,16 @@
 #= require jquery_ujs
 #= require turbolinks
 #= require vue.min.js
-#= require_tree .
 #= require websocket_rails/main
+#= require_tree .
+#= require_self
 
-dispatcher = new WebSocketRails('localhost:3000/websocket');
+$ ->
+  window.app = new Vue
+    el: 'body'
 
-dispatcher.on_open = (data) ->
-  console.log('Connection has been established: ', data)
+    created: ->
+      @$dispatcher = new WebSocketRails('localhost:3000/websocket');
 
-  channel = dispatcher.subscribe('solution_status')
-
-  ['pending', 'judging', 'build_failed', 'passed'].forEach (event) ->
-    channel.bind event, (data) ->
-      console.log(event, data)
+      @$dispatcher.on_open = (data) ->
+        console.log('Connection has been established: ', data)

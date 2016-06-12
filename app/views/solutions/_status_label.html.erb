@@ -1,0 +1,10 @@
+<%
+status_classes = {
+  pending: 'label-default',
+  passed: 'label-success',
+  build_failed: 'label-danger'
+}
+label_class = status_classes[solution.status.to_sym]
+%>
+
+<span class="label <%= label_class %>"><%= solution.status %></span>
