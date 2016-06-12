@@ -17,6 +17,7 @@ gem 'aasm', '~> 4.10.1'
 gem 'sidekiq', '~> 4.1.2'
 gem 'breadcrumbs_on_rails', '~> 2.3.1'
 gem 'websocket-rails', '~> 0.7.0'
+gem 'faye-websocket', '0.10.0'
 
 group :development, :test do
   gem 'pry-byebug'
