@@ -7,7 +7,7 @@
 #= require_tree .
 #= require_self
 
-$ ->
+ready = ->
   window.app = new Vue
     el: 'body'
 
@@ -16,3 +16,6 @@ $ ->
 
       @$dispatcher.on_open = (data) ->
         console.log('Connection has been established: ', data)
+
+$(document).ready(ready)
+$(document).on('page:load', ready)
