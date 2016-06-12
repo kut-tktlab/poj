@@ -17,3 +17,16 @@
 //= require_tree .
 //= require websocket_rails/main
 
+var dispatcher = new WebSocketRails('localhost:3000/websocket');
+
+dispatcher.on_open = function(data) {
+  console.log('Connection has been established: ', data);
+
+  var channel = dispatcher.subscribe('solution_status');
+
+  ['pending', 'judging', 'build_failed', 'passed'].forEach(function (event) {
+    channel.bind(event, function(data) {
+      console.log(event, data);
+    });
+  })
+};

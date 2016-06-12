@@ -3,5 +3,11 @@ class SolutionJudgementJob < ActiveJob::Base
 
   def perform(solution)
     solution.judge!
+
+    if solution.judge_sync
+      solution.pass!
+    else
+      solution.fail_build!
+    end
   end
 end
