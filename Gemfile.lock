@@ -69,12 +69,9 @@ GEM
       responders
       warden (~> 1.2.3)
     diff-lcs (1.2.5)
-<<<<<<< HEAD
     docile (1.1.5)
-=======
     em-synchrony (1.0.4)
       eventmachine (>= 1.0.0.beta.1)
->>>>>>> master
     enum_help (0.0.15)
     erubis (2.7.0)
     eventmachine (1.2.0.1)
