@@ -26,6 +26,7 @@ group :development, :test do
   gem 'factory_girl_rails'
   gem 'ffaker'
   gem 'rubocop', require: false
+  gem 'simplecov', require: false
 end
 
 group :development do
