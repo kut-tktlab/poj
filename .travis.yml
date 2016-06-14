@@ -15,3 +15,6 @@ script:
 services:
   - mysql
   - redis-server
+addons:
+  code_climate:
+    repo_token: 7d22b64cc7d79e88a6ddd0b1696bee4a4fb5556cc9d9b1f16d3050571562a1a0
