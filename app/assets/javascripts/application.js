@@ -14,4 +14,6 @@
 //= require bootstrap-sprockets
 //= require jquery_ujs
 //= require turbolinks
+//= require vue.min.js
 //= require_tree .
+//= require websocket_rails/main
