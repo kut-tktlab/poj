@@ -2,7 +2,11 @@
   <h1>
     解答 #<%= @solution.id %>
   </h1>
-  <p><%= status_label(@solution) %></p>
+  <p>
+    <solution-status-label
+      :solution-id="<%= @solution.id %>"
+      :status="'<%= @solution.status %>'"></solution-status-label>
+  </p>
 
   <div class="btn-group">
     <%= link_to edit_solution_path(@solution), class: 'btn btn-default' do %>

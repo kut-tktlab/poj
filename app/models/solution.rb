@@ -19,16 +19,19 @@ class Solution < ActiveRecord::Base
     state :build_failed
     state :passed
 
+    after_all_events { notify_clients }
+
     event :request_judgement do
       transitions from: :initial, to: :pending
       transitions from: :passed, to: :pending
       transitions from: :build_failed, to: :pending
-      success { enqueue_judgement_job }
+      success do
+        SolutionJudgementJob.perform_later(self)
+      end
     end
 
     event :judge do
       transitions from: :pending, to: :judging
-      success { judge_source }
     end
 
     event :fail_build do
@@ -40,17 +43,13 @@ class Solution < ActiveRecord::Base
     end
   end
 
-  private
-
-  def judge_source
-    if Processing.build_str(source)
-      pass!
-    else
-      fail_build!
-    end
+  def judge_sync
+    Processing.build_str(source)
   end
 
-  def enqueue_judgement_job
-    SolutionJudgementJob.perform_later(self)
+  private
+
+  def notify_clients
+    SolutionNotificationJob.perform_later(self) if persisted?
   end
 end

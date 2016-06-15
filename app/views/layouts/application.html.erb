@@ -13,5 +13,9 @@
     </ol>
     <%= yield %>
   </div>
+
+  <script id="solution-status-label" type="x-template">
+    <span :class="['label', labelClass]" v-text="status"></span>
+  </script>
 </body>
 </html>
