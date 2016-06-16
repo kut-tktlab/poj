@@ -76,7 +76,7 @@ GEM
       eventmachine (>= 1.0.0.beta.1)
     enum_help (0.0.15)
     erubis (2.7.0)
-    eventmachine (1.2.0.1)
+    eventmachine (1.0.9)
     execjs (2.7.0)
     factory_girl (4.7.0)
       activesupport (>= 3.0.0)
@@ -262,6 +262,7 @@ DEPENDENCIES
   coffee-rails (~> 4.1.0)
   devise (~> 4.1.1)
   enum_help (~> 0.0.15)
+  eventmachine (= 1.0.9)
   factory_girl_rails
   faye-websocket (= 0.10.0)
   ffaker
@@ -285,4 +286,4 @@ DEPENDENCIES
   websocket-rails (~> 0.7.0)
 
 BUNDLED WITH
-   1.11.2
+   1.10.6
