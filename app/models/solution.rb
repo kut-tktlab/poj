@@ -44,7 +44,7 @@ class Solution < ActiveRecord::Base
   end
 
   def judge_sync
-    Processing.build_str(source)
+    Processing::Sketch.from_source(source).build
   end
 
   private
