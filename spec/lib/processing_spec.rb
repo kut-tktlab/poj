@@ -12,7 +12,7 @@ describe 'Processing::Sketch' do
     end
 
     it 'make temporary file for the source' do
-      expect(instance.path).to include('/var/folders')
+      expect(instance.path).to include(Dir.tmpdir)
     end
   end
 
