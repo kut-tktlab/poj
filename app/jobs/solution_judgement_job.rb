@@ -4,7 +4,7 @@ class SolutionJudgementJob < ActiveJob::Base
   def perform(solution)
     solution.reload.judge!
 
-    if solution.judge_sync
+    if !solution.judge_sync
       solution.pass!
     else
       solution.fail_build!

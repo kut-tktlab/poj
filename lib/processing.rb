@@ -2,29 +2,50 @@
 require 'open3'
 require 'shellwords'
 require 'tempfile'
+require 'stringio'
 
 module Processing
-  def self.build_str(source)
-    res = false
+  class Sketch
+    PROCESSING_BIN = Pathname.new('processing-java')
+    CHECKSTYLE_BIN = Rails.root.join('vendor', 'bin', 'checkstyle')
 
-    Dir.mktmpdir('sketch') do |temp_dir|
-      sketch_dir = "#{temp_dir}/Test"
-      Dir.mkdir(sketch_dir)
-      fname = "#{sketch_dir}/Test.pde"
-      File.open(fname, 'w') { |f| f.print source }
-      res = build(sketch_dir)
+    class << self
+      def from_source(source)
+        temp_dir = Dir.mktmpdir('sketch')
+        sketch_path = "#{temp_dir}/Test"
+        Dir.mkdir(sketch_path)
+        fname = "#{sketch_path}/Test.pde"
+        File.open(fname, 'w') { |f| f.print source }
+
+        Sketch.new(sketch_path)
+      end
     end
 
-    res
-  end
+    attr_reader :path, :main_class
 
-  # Processing スケッチをビルドする
-  def self.build(sketch_path)
-    _, _, stderr, _ =
-      Open3.popen3(
-        'processing-java',"--sketch=#{Shellwords.shellescape(sketch_path)}", '--build')
+    def initialize(path)
+      @path = path
+      @main_class = File.basename(path)
+    end
 
-    err = stderr.read
-    err.blank?
+    def build
+      _, _, stderr, _ =
+        Open3.popen3(
+          PROCESSING_BIN.to_s, "--sketch=#{Shellwords.shellescape(@path)}", '--build')
+
+      err = stderr.read.chop
+      err.blank? ? nil : err
+    end
+
+    def check_style
+      _, stdout, _, _ = Open3.popen3(CHECKSTYLE_BIN.to_s, Shellwords.shellescape(main_fname))
+
+      err = stdout.read
+      err.blank? ? nil : err
+    end
+
+    def main_fname
+      File.join(@path, @main_class + '.pde')
+    end
   end
 end

@@ -1,0 +1,369 @@
+#!/usr/bin/python
+
+VERSION   = '$Id: checkstyle,v 1.17 2013/11/15 02:51:32 y-takata Exp $'
+USAGE     = 'checkstyle file1 [file2 ...]'
+PROG_NAME = 'Yet another simple style checker for C programs'
+
+# Yet another simple style checker for C programs
+# by takata.yoshiaki@kochi-tech.ac.jp, 2011,
+# based on the c_style_check posted on
+# http://www.cs.caltech.edu/courses/cs11/material/c/mike/misc/c_style_guide.html
+
+import sys, re
+
+MAX_LINE_LENGTH = 78
+operator_space  = re.compile('\w[+\-*%<>]\w|\w(<=|==|>=|!=)|(<=|==|>=|!=)\w')
+assignment_space= re.compile(
+                       '[\w\]\)][+\-*/%]?=([^=]|$)|(^|[^=])[+\-*/%]?=[\w\'"]')
+comma_space     = re.compile(',\S')
+semicolon_space = re.compile(';\S')
+paren_curly_space = re.compile('\S{')
+brace_space     = re.compile('{\S|\S}|}\w')
+brace_line      = re.compile('{[^}]*[^}\s][^}]*$|^[^{]*[^{\s][^{]*}')
+while_paren_space = re.compile('(\W|^)(for|while|if)\(')
+comment_space   = re.compile('/\*[^\*\s]|[^\*\s]\*/')
+block_comment   = re.compile('^\s*([^\s\*]|\*[^\s\*/])')
+short_function_name = re.compile(
+                        '(\W|^)(\w|[A-Za-hj-z0-9_]\w|i[A-Za-eg-z0-9_])\s*\(')
+short_counter_name  = re.compile('(\W|^)for\s*\(\s*[ab]\s*=')
+bad_variable_name   = re.compile('(\W|^)hensuu', re.IGNORECASE)
+
+preproc_line    = re.compile('^\s*#')
+continuous_line = re.compile('\\\\$')
+comment_line    = re.compile('^\s*/\*')
+indentation     = re.compile('^([ \t]*)(\S)')
+indentation_token = re.compile('[{\(\[\]\)}:;,\?]|/\*|\*/|//|\w+')
+open_paren      = re.compile('[{\(\[]|/\*')
+close_paren     = re.compile('[}\)\]]|\*/')
+declaration     = re.compile('^\s*(char|short|int|long|float|double)(\W|$)')
+empty_line      = re.compile('^\s*$')
+top_block_closing = re.compile('^}\s*$')
+data_sequence   = re.compile('^(\s*\d+)(,\s*\d+)*,?\s*$');
+
+string_literal    = re.compile(r'"(\\.|[^"\\])*"')
+character_literal = re.compile(r"'(\\.|[^'\\])'")
+array_subscript = re.compile('\[[^\]]*\]')
+comment_body    = re.compile('/\*([^\*]|\*[^/])*')
+tail_comment    = re.compile('/\*\*/|/\*\s*$')
+cpp_comment     = re.compile('//.*')
+number_literal  = re.compile('\b\d+\b')
+identifier      = re.compile('[A-Za-z_]\w*')
+scientific_notation = re.compile('(^|(?<=\W))[\d\.]+e[\+\-]?\d+($|(?=\W))')
+
+in_preproc_block = False
+in_comment_block = False
+indent_stack  = [ ('$', 0, '=0') ]
+indent_cmd    = '=0'
+last_indent   = 0
+
+short_ids     = set()
+warned        = { 'short_name': False }
+max_serial_short_name = 4
+top_block_has_closed = False
+
+encoding = sys.getdefaultencoding()
+
+# functions
+
+def warn(filename, line, lineno, message):
+    print "File %s, line %d: [%s]:\n%s" % \
+        (filename, lineno, message, line.encode(encoding))
+
+def check_line(fname, line, lineno):
+    global short_ids, warned, top_block_has_closed
+    line = line.rstrip('\r\n').expandtabs()
+    nostr = string_literal.sub('""', character_literal.sub("''", line))
+    nocomment   = comment_body.sub('/*', cpp_comment.sub('', nostr))
+    nosubscript = array_subscript.sub('[]', nocomment)
+    nosubscript = scientific_notation.sub('0', nosubscript)
+    no_tail_comment = tail_comment.sub('', nocomment)
+    preproc = preproc_line.search(line)
+
+    if top_block_has_closed and not empty_line.match(line):
+        warn(fname, line, lineno, "PUT EMPTY LINE BETWEEN TOP-LEVEL BLOCKS")
+
+    try:
+        if len(line.encode("euc_jp")) > MAX_LINE_LENGTH:
+            warn(fname, line, lineno, "TOO LONG")
+    except UnicodeEncodeError: pass
+    if comment_space.search(nostr):
+        warn(fname, line, lineno, "PUT SPACE AROUND /* AND */")
+    if block_comment.search(line) and in_comment_block:
+        warn(fname, line, lineno, "START EACH LINE OF COMMENT WITH '*'")
+    if comma_space.search(nostr):
+        if not data_sequence.match(nostr):
+            warn(fname, line, lineno, "PUT SPACE AFTER COMMA (,)")
+    if semicolon_space.search(nostr):
+        warn(fname, line, lineno, "PUT SPACE/NEWLINE AFTER SEMICOLON (;)")
+    #if brace_space.search(nostr):
+    #    warn(fname, line, lineno, "PUT SPACE AROUND CURLY BRACES ({ })")
+    if while_paren_space.search(nostr):
+        warn(fname, line, lineno, "PUT SPACE AFTER while, for, AND if")
+
+    if in_comment_block: return
+
+    if paren_curly_space.search(nocomment):
+        warn(fname, line, lineno, "PUT SPACE BEFORE CURLY BRACE ({)")
+    if operator_space.search(nosubscript) and not preproc:
+        warn(fname, line, lineno, "PUT SPACE AROUND OPERATORS")
+    if assignment_space.search(nosubscript):
+        warn(fname, line, lineno, "PUT SPACE AROUND ASSIGNMENT OPERATOR (=)")
+    if brace_line.search(no_tail_comment):
+        warn(fname, line, lineno, "DO NOT PUT CODE ON CURLY BRACE LINE")
+    if short_function_name.search(nosubscript) and not preproc:
+        warn(fname, line, lineno, "USE LONGER NAME FOR A FUNCTION")
+    if short_counter_name.search(nosubscript):
+        warn(fname, line, lineno, "USE APPROPRIATE NAME FOR A LOOP-COUNTER")
+
+    if declaration.match(line) and bad_variable_name.search(nocomment):
+        warn(fname, line, lineno, "USE APPROPRIATE NAME FOR A VARIABLE")
+
+    if not warned['short_name'] and declaration.match(line):
+        ids = identifier.findall(nosubscript)
+        short_ids.update([x for x in ids if len(x) <= 1])
+        if False:
+            # 'a' in short_ids and 'b' in short_ids and \
+            # len(short_ids) > max_serial_short_name:
+            warn(fname, line, lineno, "USE APPROPRIATE NAMES FOR VARIABLES")
+            warned['short_name'] = True
+        else:
+            max_count = count = 1
+            prev = -1
+            for c in sorted(short_ids):
+                if ord(c) == prev + 1: count = count + 1
+                else:                  count = 1
+                if max_count < count: max_count = count
+                prev = ord(c)
+            if max_count > max_serial_short_name:
+                warn(fname, line, lineno, "USE APPROPRIATE NAMES FOR VARIABLES")
+                warned['short_name'] = True
+
+    m = number_literal.search(nocomment)
+    if m and not preproc and not in_comment_block:
+        n = int(m.group())
+        if not (n <= 13 or n == 100 or n == 90 or n == 180 or n == 360 or \
+                n == 365 or n == 366 or (28 <= n and n <= 31) or \
+                n == 400 or \
+                (n <= 60 and n % 10 == 0)):
+           warn(fname, line, lineno, "DO NOT USE MAGIC NUMBERS")
+
+    top_block_has_closed = top_block_closing.match(line)
+
+def check_indent(fname, line, lineno):
+    global in_preproc_block  # this line is a part of preprocessor lines
+    global in_comment_block  # this line is a part of a block comment
+    global indent_stack      # stack for parentheses
+    global indent_cmd        # indent relative to the last line, e.g. '>0'
+    line = line.rstrip('\r\n').expandtabs()
+    preproc = preproc_line.search(line)
+    in_preproc_block = in_preproc_block or preproc
+    if not in_preproc_block:
+        check_indent_main(fname, line, lineno)
+    if not in_comment_block and indent_stack[-1][0] == '/*':
+        if not comment_line.match(line):
+            warn(fname, line, lineno, "INLINE COMMENT MUST BE IN A SINGLE LINE")
+            indent_cmd = '>=0'
+        else:
+            indent_cmd = '=1'
+    in_preproc_block = (in_preproc_block and continuous_line.search(line))
+    in_comment_block = (indent_stack[-1][0] == '/*')
+
+def check_indent_main(fname, line, lineno):
+    global indent_stack      # stack for parentheses
+    global indent_cmd        # indent relative to the last line, e.g. '>0'
+    global last_indent       # amount of the indent of the last line
+    m = indentation.search(line)
+    if not m: return
+    indent = len(m.group(1)) # amount of indentation
+    head   = m.group(2)      # the first non-space character
+
+    # break up the line into tokens
+    testee = string_literal.sub('""', character_literal.sub("''", line))
+    testee = comment_body.sub('/*', testee)
+    testee = cpp_comment .sub('//', testee)
+    tokens = indentation_token.findall(testee)
+    tokens = replace_id(tokens)  # replace identifiers with 'id'
+    tokens = remove_label(tokens)
+    if indent_stack[-1][0] == '/*':
+        tokens = remove_before_comment_close(tokens)
+    # tokens = remove_matching(tokens)
+
+    # debugging output
+    # print indent_stack,
+    # print "(%d '%s' %d)" % (indent, indent_cmd, last_indent),
+    # print tokens
+    # print testee.encode(encoding)
+    # print line
+
+    # check the amount of indentation
+    err = 0
+    if indent_stack[-1][0] == '/*':
+        # for a block comment, each line should be indented and start with '*'.
+        # so, the amount of indent is exactly +1 relative to the '/*'.
+        if   indent_cmd == '=1':
+            if   indent < last_indent + 1: err = -1
+            elif indent > last_indent + 1: err = +1
+        elif indent_cmd == '=0':
+            if   indent < last_indent: err = -1
+            elif indent > last_indent: err = +1
+        else:
+            # after an indent error, the check is loosened.
+            if   indent < last_indent:     err = -1
+    elif ':' in tokens:  # labels for switch and goto.
+        pass             # no check
+    elif head == '{':    # '{' on a separate line
+        if indent < last_indent: err = -1
+    elif head == '}':    # '}' on a separate line
+        if indent > last_indent: err = +1
+        else:
+            i = -1
+            while indent_stack[i][0] != '$' and indent_stack[i][0] != '{':
+                i = i - 1
+            if indent_stack[i][0] == '{':
+                if indent < indent_stack[i][1]: err = -1
+                if indent_stack[i - 1][0] == '\n' and \
+                   indent > indent_stack[i][1]: err = +1
+    else:
+        if head == ')':
+            if indent_cmd == '>0' or indent_cmd == '=0': indent_cmd = '>=0'
+        # if indent_stack[-1][0] == 'id': last_indent = indent_stack[-1][1]
+        if   indent_cmd ==  '>0' and indent <= last_indent: err = -1
+        elif indent_cmd ==  '<0' and indent >= last_indent: err = +1
+        elif indent_cmd == '>=0' and indent <  last_indent: err = -1
+        elif indent_cmd == '<=0' and indent >  last_indent: err = +1
+        elif indent_cmd ==  '=0' and indent <  last_indent: err = -1
+        elif indent_cmd ==  '=0' and indent >  last_indent: err = +1
+
+    # put the warning
+    if err < 0:
+        warn(fname, line, lineno, "TOO SMALL INDENT")
+    elif err > 0:
+        warn(fname, line, lineno, "TOO LARGE INDENT")
+
+    # prepare for the next line
+    if len(tokens) > 0 and (tokens[0] == '//' or tokens[0] == '/*'):
+        pass  # last_indent and indent_cmd are saved
+    elif ':' in tokens:
+        pass
+    else:
+        # the next line should have the same amount of indent
+        last_indent = indent
+        indent_cmd = '=0'
+        if   err < 0: indent_cmd = '>=0'
+        elif err > 0: indent_cmd = '<=0'
+
+    for i in range(len(tokens)):
+        if close_paren.match(tokens[i]) and indent_stack[-1][0] != '$':
+            while indent_stack[-1][0] == 'id':
+                indent_stack.pop()
+            (_, last_indent, indent_cmd) = indent_stack.pop()
+            if tokens[i] == '}':
+                if indent_stack[-1][0] == '\n':
+                    indent_stack.pop()
+                while indent_stack[-1][0] == 'id':
+                    (_, last_indent, indent_cmd) = indent_stack.pop()
+        elif open_paren.match(tokens[i]):
+            if tokens[i] == '(' and indent_stack[-1][0] == '(':
+                indent_stack.append(('id', last_indent, indent_cmd)) # fake
+            if tokens[i] == '{' and i == 0:  # indicate the separate brace
+                indent_stack.append(('\n', last_indent, indent_cmd))
+            indent_stack.append((tokens[i], last_indent, indent_cmd))
+            indent_cmd = '>0'
+            if tokens[i] == '/*': last_indent = indent
+        elif tokens[i] == 'id':
+            if indent_stack[-1][0] != 'id':
+                indent_stack.append((tokens[i], last_indent, indent_cmd))
+                indent_cmd = '>0'
+        elif tokens[i] == ';' or tokens[i] == ',':
+            while indent_stack[-1][0] == 'id':
+                (_, last_indent, indent_cmd) = indent_stack.pop()
+
+def replace_id(ls):
+    newls = []
+    for i in range(len(ls)):
+        if identifier.match(ls[i]):
+            if len(newls) > 0 and newls[-1] == 'id': pass
+            else: newls.append('id')
+        else:
+            newls.append(ls[i])
+    return newls
+
+def remove_label(ls):
+    try:
+        i = ls.index(':')
+        if '?' in ls[0:i]: return ls
+        return ls[i:]
+    except ValueError:
+        return ls
+
+def remove_before_comment_close(ls):
+    for i in range(len(ls)):
+        if ls[i] == '*/':
+            return ls[i:]
+    return []
+
+def remove_matching(ls):
+    newls = []
+    stack = []
+    for i in range(len(ls)):
+        if open_paren.match(ls[i]):
+            stack.append(len(newls))
+        elif close_paren.match(ls[i]) and len(stack) > 0:
+            j = stack.pop()
+            del newls[j:]
+            continue
+        newls.append(ls[i])
+    if len(stack) > 0:
+        j = stack.pop()
+        del newls[j+1:]
+    return newls
+
+# the following function is cited from:
+# http://www.freia.jp/taka/blog/571
+def conv(data):
+    global encoding
+    default_encoding = encoding
+    encoding = 'utf_8'
+    try: return data.decode(encoding)
+    except: pass
+    encoding = 'euc_jp'
+    try: return data.decode(encoding)
+    except: pass
+    encoding = 'shift_jis'
+    try: return data.decode(encoding)
+    except: pass
+    encoding = 'iso2022_jp'
+    try: return data.decode(encoding)
+    except: pass
+    encoding = default_encoding
+    return data
+
+def check_file(filename):
+    file = open(filename, 'r')
+    lineno = 1
+    line = file.readline()
+    while line:
+        line = conv(line)
+        check_line  (filename, line, lineno)
+        check_indent(filename, line, lineno)
+        line = file.readline()
+        lineno = lineno + 1
+    file.close()
+
+# main
+
+if len(sys.argv) < 2:
+    print "no input file"
+    raise SystemExit
+
+if sys.argv[1].startswith('-'):
+    print PROG_NAME
+    print VERSION
+    print "\n" + 'Usage: ' + USAGE
+    raise SystemExit
+
+for filename in sys.argv[1:]:
+    try:
+        check_file(filename)
+    except IOError, detail:
+        print "I/O error: %s" % detail
