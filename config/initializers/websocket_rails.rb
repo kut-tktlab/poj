@@ -28,7 +28,7 @@ WebsocketRails.setup do |config|
   # Uncomment and edit to point to a different redis instance.
   # Will not be used unless standalone or synchronization mode
   # is enabled.
-  config.redis_options = { host: 'localhost', port: '6379' }
+  config.redis_options = { host: 'redis', port: '6379' }
 
   # By default, all subscribers in to a channel will be removed
   # when that channel is made private. If you don't wish active
@@ -58,6 +58,6 @@ WebsocketRails.setup do |config|
   # Supporting HTTP streaming on Internet Explorer versions 8 & 9
   # requires CORS to be enabled for GET "/websocket" request.
   # List here the origin domains allowed to perform the request.
-  # config.allowed_origins = ['http://localhost:3000']
+  config.allowed_origins = ['http://0.0.0.0:3000']
 
 end

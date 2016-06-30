@@ -12,7 +12,7 @@ ready = ->
     el: 'body'
 
     created: ->
-      @$dispatcher = new WebSocketRails('localhost:3000/websocket');
+      @$dispatcher = new WebSocketRails("#{location.host}/websocket");
 
       @$dispatcher.on_open = (data) ->
         console.log('Connection has been established: ', data)

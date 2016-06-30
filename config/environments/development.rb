@@ -16,4 +16,6 @@ Rails.application.configure do
     g.helper false
     g.test_framework :rspec, view_specs: false, helper_specs: false, fixture: true
   end
+
+  config.web_console.whitelisted_ips = %w( 0.0.0.0/0 ::/0 )
 end
