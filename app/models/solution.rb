@@ -1,50 +1,44 @@
 # 問題に対する解答を表す
 class Solution < ActiveRecord::Base
   include AASM
+  has_many :statuses, dependent: :destroy
   validates :source, presence: true
 
-  # 解答プログラムの判定状態を表す
-  enum status: {
-    initial: 0,
-    pending: 1,
-    judging: 2,
-    build_failed: 3,
-    passed: 4
-  }
+  def judge!
+    statuses = []
 
-  aasm column: :status, enum: true do
-    state :initial, initial: true
-    state :pending
-    state :judging
-    state :build_failed
-    state :passed
-
-    after_all_events { notify_clients }
-
-    event :request_judgement do
-      transitions from: :initial, to: :pending
-      transitions from: :passed, to: :pending
-      transitions from: :build_failed, to: :pending
-      success do
-        SolutionJudgementJob.perform_later(self)
-      end
-    end
-
-    event :judge do
-      transitions from: :pending, to: :judging
-    end
-
-    event :fail_build do
-      transitions from: :judging, to: :build_failed
-    end
-
-    event :pass do
-      transitions from: :judging, to: :passed
+    [:build, :style].all? do |name|
+      e = __send__("#{name}_valid?")
+      errors = @solution_errors[name] ||= []
+      errors << e if e
+      statuses << Status.new()
     end
   end
 
-  def judge_sync
-    Processing::Sketch.from_source(source).build
+  def check_statuses
+    [:build, :style].each do |name|
+      messages = __send__("judge_#{name}")
+
+      messages.each do |msg|
+        statuses.build(message: msg)
+      end
+    end
+  end
+
+  def judge_build
+    sketch.build
+  end
+
+  def judge_style
+    sketch.check_style
+  end
+
+  def sketch
+    if source_changed?
+      @sketch = Processing::Sketch.from_source(source)
+    else
+      @sketch
+    end
   end
 
   private
