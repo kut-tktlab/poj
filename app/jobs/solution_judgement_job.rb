@@ -4,10 +4,12 @@ class SolutionJudgementJob < ActiveJob::Base
   def perform(solution)
     solution.reload.judge!
 
-    if !solution.judge_sync
-      solution.pass!
+    check_failed = [:build, :style].find { |name| solution.__send__("check_#{name}") }
+
+    if check_failed
+      solution.__send__("fail_#{check_failed}!")
     else
-      solution.fail_build!
+      solution.pass!
     end
   end
 end

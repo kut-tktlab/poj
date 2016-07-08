@@ -10,5 +10,9 @@ FactoryGirl.define do
     factory :build_failed_solution do
       source 'line(0, 0, 100);'
     end
+
+    factory :style_failed_solution do
+      source 'line(0,0,100,100);'
+    end
   end
 end
