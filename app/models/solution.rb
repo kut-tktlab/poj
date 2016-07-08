@@ -9,7 +9,8 @@ class Solution < ActiveRecord::Base
     pending: 1,
     judging: 2,
     build_failed: 3,
-    passed: 4
+    style_failed: 4,
+    passed: 10
   }
 
   aasm column: :status, enum: true do
@@ -17,6 +18,7 @@ class Solution < ActiveRecord::Base
     state :pending
     state :judging
     state :build_failed
+    state :style_failed
     state :passed
 
     after_all_events { notify_clients }
@@ -25,6 +27,8 @@ class Solution < ActiveRecord::Base
       transitions from: :initial, to: :pending
       transitions from: :passed, to: :pending
       transitions from: :build_failed, to: :pending
+      transitions from: :style_failed, to: :pending
+
       success do
         SolutionJudgementJob.perform_later(self)
       end
@@ -38,13 +42,21 @@ class Solution < ActiveRecord::Base
       transitions from: :judging, to: :build_failed
     end
 
+    event :fail_style do
+      transitions from: :judging, to: :style_failed
+    end
+
     event :pass do
       transitions from: :judging, to: :passed
     end
   end
 
-  def judge_sync
+  def check_build
     Processing::Sketch.from_source(source).build
+  end
+
+  def check_style
+    Processing::Sketch.from_source(source).check_style
   end
 
   private

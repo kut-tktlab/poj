@@ -3,6 +3,7 @@ statusClasses =
   pending: 'label-default'
   passed: 'label-success'
   build_failed: 'label-danger'
+  style_failed: 'label-danger'
 
 Vue.component 'solution-status-label',
   template: '#solution-status-label'
